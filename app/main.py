@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 from pathlib import Path
 from app.config import API_HOST, API_PORT, API_DEBUG
 from app.routes import router
+from app.html_interface import get_html_interface
 from app.database import Base, engine
 
 # Create app instance
@@ -22,19 +23,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routes
+# Include API routes
 app.include_router(router)
 
 @app.get("/")
 async def root():
-    """Root endpoint"""
+    """Root endpoint - redirect to interface"""
     return {
         "message": "RJPP Novelty Detection API",
         "status": "running",
         "version": "1.0.0",
-        "docs": "http://127.0.0.1:8000/docs",
+        "interface": "http://127.0.0.1:8000/interface",
+        "api_docs": "http://127.0.0.1:8000/docs",
         "redoc": "http://127.0.0.1:8000/redoc"
     }
+
+@app.get("/interface", response_class=HTMLResponse)
+async def get_interface():
+    """Serve HTML interface"""
+    return get_html_interface()
 
 @app.get("/health")
 async def health():
